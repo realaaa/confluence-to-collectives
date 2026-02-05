@@ -1,0 +1,33 @@
+# Confluence to Nextcloud Collectives Migration Configuration
+# Copy this file to config.yaml and fill in your credentials
+
+# Confluence Cloud settings
+confluence:
+  # Your Confluence Cloud URL (e.g., https://yourcompany.atlassian.net)
+  base_url: ${CONFLUENCE_BASE_URL}
+  # Your Atlassian account email
+  username: ${CONFLUENCE_USERNAME}
+  # API token from https://id.atlassian.com/manage-profile/security/api-tokens
+  api_token: ${CONFLUENCE_API_TOKEN}
+
+# Nextcloud settings
+nextcloud:
+  # Your Nextcloud server URL (e.g., https://cloud.example.com)
+  server: ${NEXTCLOUD_SERVER}
+  # Nextcloud username
+  username: ${NEXTCLOUD_USERNAME}
+  # Nextcloud password or app password
+  password: ${NEXTCLOUD_PASSWORD}
+  # Name of the Collective to migrate content into
+  collective: ${NEXTCLOUD_COLLECTIVE}
+
+# Migration settings
+migration:
+  # Local directory for export/conversion staging
+  output_dir: ./migration-data
+  # Maximum file size to migrate (MB)
+  max_file_size_mb: 100
+  # Include page metadata in output
+  include_metadata: true
+  # Parent folder in Collectives for migrated pages
+  target_parent: MigratedPages
