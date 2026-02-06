@@ -1,6 +1,7 @@
 # Environment and secrets
 .env
 config.yaml
+requirements.md
 
 # Python
 venv/
