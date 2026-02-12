@@ -9,6 +9,9 @@ export_data/
 convert_data/
 .migration-state.json
 
+# MCP (development only, contains credentials)
+.mcp.json
+
 # IDE
 .vscode/
 .idea/

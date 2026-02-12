@@ -104,3 +104,4 @@ Use these to generate realistic test fixtures and validate API assumptions again
 - Don't add external binary dependencies (no Pandoc, no headless browsers).
 - Don't couple `migrate.py` to MCP servers — direct `requests` calls only.
 - Don't abort the full migration on a single page failure — track it and continue.
+- Don't commit `.mcp.json` — it contains credentials and is in `.gitignore`.
