@@ -10,7 +10,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote, quote
 
 import click
 import html2text
@@ -423,7 +423,7 @@ class Converter:
                 if "/attachments/" in src or "/attachment/" in src:
                     # Extract filename from URL path
                     filename = unquote(src.split("/")[-1].split("?")[0])
-                    img["src"] = filename
+                    img["src"] = quote(filename)
                 elif src.startswith("data:"):
                     pass  # inline base64, leave as-is
         else:
@@ -502,7 +502,7 @@ class Converter:
             return ""
         lines = ["## Attachments", ""]
         for name in non_image:
-            lines.append(f"- [{name}]({name})")
+            lines.append(f"- [{name}]({quote(name)})")
         return "\n".join(lines)
 
     # -- filename / tree --------------------------------------------------
@@ -669,6 +669,35 @@ class NextcloudClient:
                 f"Upload failed for {remote_path}: HTTP {resp.status_code}"
             )
         log.debug("Uploaded: %s", remote_path)
+
+    def get_file_id(self, remote_path):
+        """Get Nextcloud file ID via PROPFIND."""
+        import xml.etree.ElementTree as ET
+
+        url = f"{self.dav_base}/{remote_path.lstrip('/')}"
+        body = (
+            '<?xml version="1.0"?>'
+            '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">'
+            "<d:prop><oc:fileid/></d:prop>"
+            "</d:propfind>"
+        )
+        resp = self.session.request(
+            "PROPFIND", url,
+            headers={"Depth": "0", "Content-Type": "application/xml"},
+            data=body,
+        )
+        if resp.status_code in (200, 207):
+            root = ET.fromstring(resp.text)
+            fileid_el = root.find(".//{http://owncloud.org/ns}fileid")
+            if fileid_el is not None and fileid_el.text:
+                return fileid_el.text
+        log.warning("Could not get file ID for %s (HTTP %d)", remote_path, resp.status_code)
+        return None
+
+    def file_url(self, file_id, remote_dir):
+        """Build a Nextcloud Files app URL for the given file ID."""
+        dir_path = f"/Collectives/{self.collective}/{remote_dir.lstrip('/')}"
+        return f"{self.base_url}/apps/files/files/{file_id}?dir={quote(dir_path)}&openfile=true"
 
     def exists(self, path):
         """Check if a remote path exists via PROPFIND depth 0."""
@@ -1077,36 +1106,87 @@ def upload(target_parent, dry_run, debug, log_file):
     if not convert_base.exists():
         raise click.ClickException(f"Convert data directory not found: {convert_base}")
 
-    # Upload all files from convert_data
-    uploaded_pages = set()
-    for local_file in sorted(convert_base.rglob("*")):
-        if local_file.is_dir():
-            continue
+    # Collect all files, split into attachments and markdown pages
+    all_files = sorted(f for f in convert_base.rglob("*") if f.is_file())
+    attachment_files = [f for f in all_files if f.suffix != ".md"]
+    md_files = [f for f in all_files if f.suffix == ".md"]
 
+    # Ensure all parent directories are created
+    created_dirs = set()
+    for local_file in all_files:
+        parent_dirs = str(local_file.relative_to(convert_base).parent)
+        if parent_dirs and parent_dirs != "." and parent_dirs not in created_dirs:
+            nc.mkdir_p(f"{target_parent}/{parent_dirs}")
+            created_dirs.add(parent_dirs)
+
+    # Pass 1: Upload attachments and collect file IDs
+    # Maps: remote_dir -> {encoded_filename: file_url}
+    attachment_urls = {}
+    for local_file in attachment_files:
         relative = local_file.relative_to(convert_base)
         remote_path = f"{target_parent}/{relative}"
-
-        # Create parent directories
-        parent_dirs = str(relative.parent)
-        if parent_dirs and parent_dirs != ".":
-            nc.mkdir_p(f"{target_parent}/{parent_dirs}")
-
         try:
             nc.upload_file(str(local_file), remote_path)
+            log.info("Uploaded attachment: %s", remote_path)
+            file_id = nc.get_file_id(remote_path)
+            if file_id:
+                remote_dir = str(relative.parent) if str(relative.parent) != "." else ""
+                full_remote_dir = f"{target_parent}/{remote_dir}".rstrip("/")
+                encoded_name = quote(local_file.name)
+                attachment_urls.setdefault(full_remote_dir, {})[encoded_name] = \
+                    nc.file_url(file_id, full_remote_dir)
+                log.debug("File ID %s for %s", file_id, remote_path)
+        except Exception as e:
+            log.error("Failed to upload attachment %s: %s", remote_path, e)
+
+    # Pass 2: Patch markdown with file-ID links, then upload
+    uploaded_pages = set()
+    for local_file in md_files:
+        relative = local_file.relative_to(convert_base)
+        remote_path = f"{target_parent}/{relative}"
+        remote_dir = str(relative.parent) if str(relative.parent) != "." else ""
+        full_remote_dir = f"{target_parent}/{remote_dir}".rstrip("/")
+
+        try:
+            content = local_file.read_text(encoding="utf-8")
+
+            # Replace attachment links with absolute Nextcloud file URLs
+            dir_urls = attachment_urls.get(full_remote_dir, {})
+            if dir_urls:
+                def _replace_link(m):
+                    label, href = m.group(1), m.group(2)
+                    if href in dir_urls:
+                        return f"[{label}]({dir_urls[href]})"
+                    return m.group(0)
+
+                content = re.sub(
+                    r"^- \[([^\]]+)\]\(([^)]+)\)$",
+                    _replace_link,
+                    content,
+                    flags=re.MULTILINE,
+                )
+
+            # Upload patched content
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False,
+                                             encoding="utf-8") as tmp:
+                tmp.write(content)
+                tmp_path = tmp.name
+            try:
+                nc.upload_file(tmp_path, remote_path)
+            finally:
+                os.unlink(tmp_path)
+
             log.info("Uploaded: %s", remote_path)
 
-            # Track which pages were uploaded based on .md files
-            if local_file.suffix == ".md":
-                for pid, page_rec in converted.items():
-                    if page_rec.get("convert_path") and Path(page_rec["convert_path"]) == local_file:
-                        page_rec["status"] = "uploaded"
-                        page_rec["upload_path"] = remote_path
-                        state.set_page(pid, page_rec)
-                        uploaded_pages.add(pid)
+            for pid, page_rec in converted.items():
+                if page_rec.get("convert_path") and Path(page_rec["convert_path"]) == local_file:
+                    page_rec["status"] = "uploaded"
+                    page_rec["upload_path"] = remote_path
+                    state.set_page(pid, page_rec)
+                    uploaded_pages.add(pid)
 
         except Exception as e:
             log.error("Failed to upload %s: %s", remote_path, e)
-            # Find the page this file belongs to and mark failed
             for pid, page_rec in converted.items():
                 if page_rec.get("convert_path") and Path(page_rec["convert_path"]) == local_file:
                     page_rec["status"] = "failed"

@@ -14,7 +14,8 @@
       "Bash(python -m pytest:*)",
       "WebFetch(domain:community.developer.atlassian.com)",
       "WebFetch(domain:community.atlassian.com)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "WebFetch(domain:docs.nextcloud.com)"
     ]
   },
   "enabledMcpjsonServers": [
