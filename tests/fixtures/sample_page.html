@@ -1,0 +1,65 @@
+<h1>Sample Page Title</h1>
+<p>This is a sample Confluence page with various elements.</p>
+
+<h2>Section with Table</h2>
+<table class="confluenceTable">
+  <thead>
+    <tr>
+      <th class="confluenceTh"><h3>Header One</h3></th>
+      <th class="confluenceTh"><h3>Header Two</h3></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="confluenceTd">Cell 1</td>
+      <td class="confluenceTd">Cell 2</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">Cell 3</td>
+      <td class="confluenceTd">Cell 4</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Section with Image</h2>
+<p><img src="/download/attachments/12345/screenshot.png?version=1" alt="Screenshot" /></p>
+
+<h2>Code Block</h2>
+<div class="code-block" data-language="python">
+  <pre>def hello():
+    print("Hello, world!")</pre>
+</div>
+
+<h2>Info Panel</h2>
+<div class="confluence-information-macro confluence-information-macro-information">
+  <div class="confluence-information-macro-body">
+    <p>This is an informational note about something important.</p>
+  </div>
+</div>
+
+<h2>Warning Panel</h2>
+<div class="confluence-information-macro confluence-information-macro-warning">
+  <div class="confluence-information-macro-body">
+    <p>Be careful with this operation!</p>
+  </div>
+</div>
+
+<h2>User Mention</h2>
+<p>This was reviewed by <a class="confluence-userlink" href="/wiki/people/abc123">John Doe</a>.</p>
+
+<h2>Unsupported Macro</h2>
+<ac:structured-macro ac:name="jira">
+  <ac:parameter ac:name="key">PROJ-123</ac:parameter>
+</ac:structured-macro>
+
+<h2>Links</h2>
+<p>See <a href="/wiki/spaces/TEAM/pages/67890/Other+Page">Other Page</a> for details.</p>
+
+<h2>Attachment Container (should be removed)</h2>
+<div class="plugin_attachments_container">
+  <h2>Attachments</h2>
+  <table class="aui">
+    <tr><td>screenshot.png</td><td>100 KB</td></tr>
+    <tr><td>document.pdf</td><td>500 KB</td></tr>
+  </table>
+</div>

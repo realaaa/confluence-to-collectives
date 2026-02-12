@@ -1,0 +1,32 @@
+[
+  {
+    "id": "comment-1",
+    "version": {
+      "authorId": "user-123",
+      "author": {
+        "displayName": "Alice Smith"
+      },
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    "body": {
+      "storage": {
+        "value": "<p>Great work on this page! I have a few suggestions:</p><ul><li>Add more examples</li><li>Include a diagram</li></ul>"
+      }
+    }
+  },
+  {
+    "id": "comment-2",
+    "version": {
+      "authorId": "user-456",
+      "author": {
+        "displayName": "Bob Jones"
+      },
+      "createdAt": "2024-01-16T14:22:00.000Z"
+    },
+    "body": {
+      "storage": {
+        "value": "<p>Updated the examples as requested. Please review.</p>"
+      }
+    }
+  }
+]

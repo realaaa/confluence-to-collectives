@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:developer.atlassian.com)",
+      "WebFetch(domain:nextcloud.github.io)",
+      "WebFetch(domain:help.nextcloud.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:gitlab.com)",
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(python migrate.py:*)",
+      "Bash(python -m pytest:*)",
+      "WebFetch(domain:community.developer.atlassian.com)",
+      "WebFetch(domain:community.atlassian.com)",
+      "Bash(python:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "atlassian",
+    "nextcloud"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "atlassian": {
+      "command": "/Users/aanisimov/.local/bin/uvx",
+      "args": ["--python=3.12", "mcp-atlassian"],
+      "env": {
+        "CONFLUENCE_URL": "https://velocityhost.atlassian.net",
+        "CONFLUENCE_USERNAME": "aleksey@velocityhost.com.au",
+        "CONFLUENCE_API_TOKEN": "ATATT3xFfGF059q0PElTj7b3OmUNa7BHvDLfRvCYV9rc5jzbF8S0jA3JUGdP7KY46LaEOLD31YS9nCoupX6kax0KShwT1dN1iHOtQ5vIqgn3YDI1TXnbhZUrnkONBLJThNX9M3jsK5xJ4KpkcR-0U5mBts_Bo9JBSEChy-5ZmLrPFeU_IuWUAJ8=F46093B3"
+      }
+    },
+    "nextcloud": {
+      "command": "/Users/aanisimov/.local/bin/uvx",
+      "args": ["--from", "git+https://github.com/cbcoutinho/nextcloud-mcp-server", "nextcloud-mcp-server", "run", "--no-oauth"],
+      "env": {
+        "NEXTCLOUD_HOST": "https://demo1nc.maxio.co",
+        "NEXTCLOUD_USERNAME": "aleksey@velocityhost.com.au",
+        "NEXTCLOUD_PASSWORD": "kbsxx-RkPoE-rqHCe-EATgd-BWJQw",
+        "TOKEN_STORAGE_DB": "./data/tokens.db"
+      }
+    }
+  }
+}
