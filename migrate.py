@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Confluence Cloud → Nextcloud Collectives Migration CLI."""
 
+__version__ = "0.3.0"
+
 import json
 import logging
 import os
@@ -318,6 +320,15 @@ class Converter:
                     prev.decompose()
             el.decompose()
 
+        # Tables: expand colspan into duplicate cells so markdown column count is correct
+        for cell in soup.find_all(["th", "td"]):
+            span = int(cell.get("colspan", 1))
+            if span > 1:
+                del cell["colspan"]
+                for _ in range(span - 1):
+                    empty = soup.new_tag(cell.name)
+                    cell.insert_after(empty)
+
         # Tables: flatten block elements inside cells so html2text keeps table intact
         for tag_name in ("th", "td"):
             for cell in soup.find_all(tag_name):
@@ -416,14 +427,20 @@ class Converter:
             if display:
                 mention.replace_with(f"@{display}")
 
-        # Rewrite image src to local filenames
+        # Rewrite image src to local filenames; remove non-image files (e.g. .mp4)
+        image_exts = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".bmp", ".webp", ".ico"}
         if not self.exclude_images:
             for img in soup.find_all("img"):
                 src = img.get("src", "")
                 if "/attachments/" in src or "/attachment/" in src:
-                    # Extract filename from URL path
                     filename = unquote(src.split("/")[-1].split("?")[0])
-                    img["src"] = quote(filename)
+                    ext = Path(filename).suffix.lower()
+                    if ext in image_exts:
+                        img["src"] = quote(filename)
+                    else:
+                        # Non-image (video, etc.) — remove inline embed;
+                        # file will appear in ## Attachments section instead
+                        img.decompose()
                 elif src.startswith("data:"):
                     pass  # inline base64, leave as-is
         else:

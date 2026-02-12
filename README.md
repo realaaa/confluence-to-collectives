@@ -215,3 +215,20 @@ The `.mcp.json` file configures two MCP servers for development and testing:
 - **`nextcloud-mcp-server`** — Verify WebDAV uploads, check directory structures
 
 These are development tools only — `migrate.py` has zero MCP dependency and uses direct HTTP requests.
+
+## Changelog
+
+### 0.3.0
+
+- Fix: Non-image files (`.mp4`, `.mov`, etc.) wrapped in `<img>` tags by Confluence are no longer treated as inline images — they appear in the Attachments section with proper Nextcloud file links instead
+- Fix: Attachment links now use absolute Nextcloud file-ID URLs (`/apps/files/files/{id}?openfile=true`) instead of relative paths that Collectives misinterprets as page links
+- Fix: Tables with `colspan` header cells no longer produce mismatched column counts that break Markdown rendering
+- Fix: Filenames with spaces in attachment links are now URL-encoded
+
+### 0.2.0
+
+- Checkpoint: Added correct handling of attachments URLs logic + handling white spaces
+
+### 0.1.0
+
+- Initial commit — Confluence to Collectives migration pipeline
