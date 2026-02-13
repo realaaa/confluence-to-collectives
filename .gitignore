@@ -1,18 +1,33 @@
-# Environment
+# Python Environment general
 .env
 venv/
+.venv/
 __pycache__/
 *.pyc
+*.egg-info/
+*.egg
+.mypy_cache/
 
-# Migration data
+# Migration data - current project specific
 export_data/
 convert_data/
 .migration-state.json
+data/
 
 # MCP (development only, contains credentials)
-.mcp.json
+*.mcp.json
+mcp.memory.json
 
-# IDE
+# Other Dependencies - Build and output files
+node_modules/
+vendor/
+dist/
+build/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# IDE specific
 .vscode/
 .idea/
 *.swp
@@ -22,10 +37,15 @@ convert_data/
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs - various
 *.log
+npm-debug.log*
+yarn-debug.log*
+tmp/
+temp/
 
-# Testing
+# Testing various
 .pytest_cache/
 htmlcov/
 .coverage
+coverage/
